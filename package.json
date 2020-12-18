@@ -1,0 +1,32 @@
+{
+  "name": "go-template-repo",
+  "version": "0.0.1",
+  "private": true,
+  "description": "A template repo for quickly starting Go projects.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theartofeducation/go-template-repo.git"
+  },
+  "author": {
+    "name": "Christopher Lamm",
+    "email": "chris@theantichris.com",
+    "url": "https://github.com/theantichris"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/theartofeducation/go-template-repo/issues"
+  },
+  "homepage": "https://github.com/theartofeducation/go-template-repo#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^11.0.0",
+    "@commitlint/config-conventional": "^11.0.0",
+    "@commitlint/prompt": "^11.0.0",
+    "husky": "^4.3.0"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-push": "golangci-lint run"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+linters:
+  disable-all: true
+  enable:
+    - goimports
+    - gofmt
+    - golint
+    - govet
+
+linters-settings:
+  govet:
+    check-shadowing: true
+
+issues:
+  exclude-use-default: false
