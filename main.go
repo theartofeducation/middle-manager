@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"os/signal"
@@ -64,15 +63,6 @@ func main() {
 	server.Shutdown(ctx)
 	log.Infoln("shutting down...")
 	os.Exit(0)
-}
-
-func rootHandler() http.HandlerFunc {
-	return func(writer http.ResponseWriter, request *http.Request) {
-		writer.WriteHeader(http.StatusOK)
-		writer.Header().Set("Content-Type", "application/json")
-
-		io.WriteString(writer, `{"message": "Locke, I told you I need those TPS reports done by noon today."}`)
-	}
 }
 
 func startServer(server *http.Server) {
