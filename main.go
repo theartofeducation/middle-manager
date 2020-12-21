@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
@@ -17,7 +18,6 @@ import (
 )
 
 var (
-	port      string
 	errorChan chan error
 	log       *logrus.Logger
 )
@@ -29,14 +29,12 @@ func main() {
 		log.Infoln("could not load env:", err)
 	}
 
-	port = os.Getenv("PORT")
-
 	router := mux.NewRouter()
 
 	loadRoutes(router)
 
 	server := &http.Server{
-		Addr:         "0.0.0.0:" + port,
+		Addr:         "0.0.0.0:" + os.Getenv(("PORT")),
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
@@ -61,9 +59,9 @@ func main() {
 }
 
 func startServer(server *http.Server) {
-	log.Infof("Starting server on port %s", port)
+	log.Infof("Starting server on %s", server.Addr)
 
-	errorChan <- server.ListenAndServe()
+	errorChan <- http.ListenAndServe(server.Addr, handlers.CompressHandler(server.Handler))
 }
 
 func handleInterrupt() {
