@@ -2,14 +2,17 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/pkg/errors"
 
 	"github.com/sirupsen/logrus"
 )
@@ -23,6 +26,11 @@ func main() {
 
 	router.HandleFunc("/", rootHandler()).Methods(http.MethodGet)
 
+	// Create handler for taskStatusUpdated https://clickup20.docs.apiary.io/#reference/0/webhooks/create-webhook
+	// Get Task information
+	// Create Clubhouse Epic
+	// Send Epic to Clubhouse https://clubhouse.io/api/rest/v3/#Create-Epic
+
 	server := &http.Server{
 		Addr:         "0.0.0.0:" + os.Getenv("PORT"),
 		WriteTimeout: time.Second * 15,
@@ -31,23 +39,21 @@ func main() {
 		Handler:      router,
 	}
 
-	go serve(server, log)
+	errorChan := make(chan error, 2)
 
-	interruptChan := make(chan os.Signal, 1)
-	signal.Notify(interruptChan, os.Interrupt)
-	<-interruptChan
+	go startServer(server, log, errorChan)
+	go handleInterrupt(errorChan)
+
+	err := <-errorChan
+	err = errors.Wrap(err, "main")
+	log.Errorln(err)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
 	server.Shutdown(ctx)
-	log.Info("shutting down...")
+	log.Infoln("shutting down...")
 	os.Exit(0)
-
-	// Create handler for taskStatusUpdated https://clickup20.docs.apiary.io/#reference/0/webhooks/create-webhook
-	// Get Task information
-	// Create Clubhouse Epic
-	// Send Epic to Clubhouse https://clubhouse.io/api/rest/v3/#Create-Epic
 }
 
 func rootHandler() http.HandlerFunc {
@@ -59,10 +65,15 @@ func rootHandler() http.HandlerFunc {
 	}
 }
 
-func serve(server *http.Server, log *logrus.Logger) {
-	log.Infof("starting server on port %s...\n", os.Getenv("PORT"))
+func startServer(server *http.Server, log *logrus.Logger, errorChan chan error) {
+	log.Infof("Starting server on port %s", os.Getenv("PORT"))
 
-	if err := server.ListenAndServe(); err != nil {
-		log.Error("failed to start the server: ", err) // TODO: error being triggered on shutdown
-	}
+	errorChan <- server.ListenAndServe()
+}
+
+func handleInterrupt(errorChan chan error) {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGINT)
+
+	errorChan <- fmt.Errorf("%s", <-ch)
 }
