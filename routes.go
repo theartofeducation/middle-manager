@@ -2,9 +2,7 @@ package main
 
 import (
 	"net/http"
-	"os"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -17,7 +15,7 @@ func loadRoutes(router *mux.Router) {
 		})
 	})
 
-	router.Handle("/", handlers.CombinedLoggingHandler(os.Stdout, rootHandler())).Methods(http.MethodGet)
+	router.HandleFunc("/", rootHandler()).Methods(http.MethodGet)
 
 	// TODO: Create handler for taskStatusUpdated https://clickup20.docs.apiary.io/#reference/0/webhooks/create-webhook
 	// TODO: Get Task information

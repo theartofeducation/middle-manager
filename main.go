@@ -61,7 +61,7 @@ func main() {
 func startServer(server *http.Server) {
 	log.Infof("Starting server on %s", server.Addr)
 
-	errorChan <- http.ListenAndServe(server.Addr, handlers.CompressHandler(server.Handler))
+	errorChan <- http.ListenAndServe(server.Addr, handlers.CompressHandler(handlers.CombinedLoggingHandler(os.Stdout, server.Handler)))
 }
 
 func handleInterrupt() {
