@@ -33,7 +33,7 @@ func main() {
 
 	router := mux.NewRouter()
 
-	router.HandleFunc("/", rootHandler()).Methods(http.MethodGet)
+	loadRoutes(router)
 
 	// Create handler for taskStatusUpdated https://clickup20.docs.apiary.io/#reference/0/webhooks/create-webhook
 	// Get Task information
