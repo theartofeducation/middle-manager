@@ -20,6 +20,7 @@ func rootHandler() http.HandlerFunc {
 
 func taskStatusUpdatedHandler() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+		// TODO: filter to list https://app.clickup.com/2324163/v/li/52581966
 		writer.WriteHeader(http.StatusNoContent)
 
 		// TODO: Verify signature
