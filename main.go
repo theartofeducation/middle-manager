@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -11,11 +10,13 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+
+	"github.com/sirupsen/logrus"
 )
 
-// TODO: add proper logging
-
 func main() {
+	log := logrus.New()
+
 	godotenv.Load()
 
 	router := mux.NewRouter()
@@ -30,7 +31,7 @@ func main() {
 		Handler:      router,
 	}
 
-	go serve(server)
+	go serve(server, log)
 
 	interruptChan := make(chan os.Signal, 1)
 	signal.Notify(interruptChan, os.Interrupt)
@@ -40,7 +41,7 @@ func main() {
 	defer cancel()
 
 	server.Shutdown(ctx)
-	fmt.Println("shutting down...")
+	log.Info("shutting down...")
 	os.Exit(0)
 
 	// Create handler for taskStatusUpdated https://clickup20.docs.apiary.io/#reference/0/webhooks/create-webhook
@@ -58,10 +59,10 @@ func rootHandler() http.HandlerFunc {
 	}
 }
 
-func serve(server *http.Server) {
-	fmt.Printf("starting server on port %s...\n", os.Getenv("PORT"))
+func serve(server *http.Server, log *logrus.Logger) {
+	log.Infof("starting server on port %s...\n", os.Getenv("PORT"))
 
 	if err := server.ListenAndServe(); err != nil {
-		fmt.Println("failed to start the server: ", err) // TODO: error being triggered on shutdown
+		log.Error("failed to start the server: ", err) // TODO: error being triggered on shutdown
 	}
 }
