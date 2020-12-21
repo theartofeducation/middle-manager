@@ -17,10 +17,20 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func main() {
-	log := logrus.New()
+var (
+	port      string
+	errorChan chan error
+	log       *logrus.Logger
+)
 
-	godotenv.Load()
+func main() {
+	log = logrus.New()
+
+	if err := godotenv.Load(); err != nil {
+		log.Infoln("could not load env:", err)
+	}
+
+	port = os.Getenv("PORT")
 
 	router := mux.NewRouter()
 
@@ -32,17 +42,17 @@ func main() {
 	// Send Epic to Clubhouse https://clubhouse.io/api/rest/v3/#Create-Epic
 
 	server := &http.Server{
-		Addr:         "0.0.0.0:" + os.Getenv("PORT"),
+		Addr:         "0.0.0.0:" + port,
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
 		Handler:      router,
 	}
 
-	errorChan := make(chan error, 2)
+	errorChan = make(chan error, 2)
 
-	go startServer(server, log, errorChan)
-	go handleInterrupt(errorChan)
+	go startServer(server)
+	go handleInterrupt()
 
 	err := <-errorChan
 	err = errors.Wrap(err, "main")
@@ -65,13 +75,13 @@ func rootHandler() http.HandlerFunc {
 	}
 }
 
-func startServer(server *http.Server, log *logrus.Logger, errorChan chan error) {
-	log.Infof("Starting server on port %s", os.Getenv("PORT"))
+func startServer(server *http.Server) {
+	log.Infof("Starting server on port %s", port)
 
 	errorChan <- server.ListenAndServe()
 }
 
-func handleInterrupt(errorChan chan error) {
+func handleInterrupt() {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGINT)
 
