@@ -10,17 +10,20 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 // TODO: add proper logging
 
 func main() {
+	godotenv.Load()
+
 	router := mux.NewRouter()
 
 	router.HandleFunc("/", rootHandler()).Methods(http.MethodGet)
 
 	server := &http.Server{
-		Addr:         "0.0.0.0:8080", // TODO: move port to env
+		Addr:         "0.0.0.0:" + os.Getenv("PORT"),
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
@@ -56,7 +59,7 @@ func rootHandler() http.HandlerFunc {
 }
 
 func serve(server *http.Server) {
-	fmt.Println("starting server on port 8080...") // TODO: move port to env
+	fmt.Printf("starting server on port %s...\n", os.Getenv("PORT"))
 
 	if err := server.ListenAndServe(); err != nil {
 		fmt.Println("failed to start the server: ", err) // TODO: error being triggered on shutdown
