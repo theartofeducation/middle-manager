@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/pkg/errors"
 )
@@ -33,11 +35,37 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 		var webhook Webhook
 		if err := json.NewDecoder(request.Body).Decode(&webhook); err != nil {
 			log.Errorln(errors.Wrap(err, "taskStatusUpdatedHandler"))
+
+			writer.WriteHeader(http.StatusUnprocessableEntity)
+
+			return
 		}
 
-		log.Infoln("Task ID:", webhook.TaskID)
-
 		// TODO: Get Task information
+
+		client := &http.Client{}
+		url := os.Getenv("CLICKUP_API_URL") + "/task/" + webhook.TaskID
+		req, _ := http.NewRequest(http.MethodGet, url, nil)
+
+		req.Header.Add("Authorization", os.Getenv("CLICKUP_API_KEY"))
+		req.Header.Add("Content-Type", "application/json")
+
+		resp, err := client.Do(req)
+
+		if err != nil {
+			log.Errorln("Error when sending request to the server", err) // TODO: wrap error
+
+			writer.WriteHeader(resp.StatusCode)
+
+			return
+		}
+
+		defer resp.Body.Close()
+		respBody, _ := ioutil.ReadAll(resp.Body)
+
+		log.Infoln("Response status:", resp.Status)
+		log.Infoln("Response body:", string(respBody))
+
 		// TODO: Create Clubhouse Epic
 		// TODO: Send Epic to Clubhouse https://clubhouse.io/api/rest/v3/#Create-Epic
 	}
