@@ -41,21 +41,17 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 			return
 		}
 
-		// TODO: Get Task information
-
 		client := &http.Client{}
 		url := os.Getenv("CLICKUP_API_URL") + "/task/" + webhook.TaskID
 		req, _ := http.NewRequest(http.MethodGet, url, nil)
-
 		req.Header.Add("Authorization", os.Getenv("CLICKUP_API_KEY"))
 		req.Header.Add("Content-Type", "application/json")
-
 		resp, err := client.Do(req)
 
 		if err != nil {
-			log.Errorln("Error when sending request to the server", err) // TODO: wrap error
+			log.Errorln(errors.Wrap(err, "taskStatusUpdateHandler > ClickUp Get Task"))
 
-			writer.WriteHeader(resp.StatusCode)
+			writer.WriteHeader(http.StatusInternalServerError)
 
 			return
 		}
@@ -65,6 +61,7 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 
 		log.Infoln("Response status:", resp.Status)
 		log.Infoln("Response body:", string(respBody))
+		// TODO: unmarshal Task
 
 		// TODO: Create Clubhouse Epic
 		// TODO: Send Epic to Clubhouse https://clubhouse.io/api/rest/v3/#Create-Epic
