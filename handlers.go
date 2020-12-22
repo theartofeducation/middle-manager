@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -25,7 +24,7 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 		writer.WriteHeader(http.StatusNoContent)
 
 		if !signatureVerified(request) {
-			log.Errorln(errors.Wrap(ErrSignatureMismatch, "taskStatusUpdatedHandler"))
+			log.Errorln(errors.Wrap(ErrSignatureMismatch, "taskStatusUpdatedHandler > Verify Signature"))
 
 			writer.WriteHeader(http.StatusUnauthorized)
 
@@ -34,7 +33,7 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 
 		var webhook Webhook
 		if err := json.NewDecoder(request.Body).Decode(&webhook); err != nil {
-			log.Errorln(errors.Wrap(err, "taskStatusUpdatedHandler"))
+			log.Errorln(errors.Wrap(err, "taskStatusUpdatedHandler > Decoding Webhook"))
 
 			writer.WriteHeader(http.StatusUnprocessableEntity)
 
@@ -57,13 +56,26 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 		}
 
 		defer resp.Body.Close()
-		respBody, _ := ioutil.ReadAll(resp.Body)
+		if resp.StatusCode != http.StatusOK {
+			log.Errorln(errors.Wrap(errors.New("API error"), "taskStatusUpdateHandler > ClickUp API Response"))
 
-		log.Infoln("Response status:", resp.Status)
-		log.Infoln("Response body:", string(respBody))
-		// TODO: unmarshal Task
+			writer.WriteHeader(http.StatusInternalServerError)
 
-		// TODO: Create Clubhouse Epic
-		// TODO: Send Epic to Clubhouse https://clubhouse.io/api/rest/v3/#Create-Epic
+			return
+		}
+
+		var task Task
+		if err := json.NewDecoder(resp.Body).Decode((&task)); err != nil {
+			log.Errorln(errors.Wrap(err, "taskStatusUpdatedHandler > Decoding Task"))
+
+			writer.WriteHeader(http.StatusUnprocessableEntity)
+
+			return
+		}
+
+		if task.Status.Status == clickUpStatusReadyForDevelopment {
+			// Create Clubhouse Epic
+			// Send Epic to Clubhouse https://clubhouse.io/api/rest/v3/#Create-Epic
+		}
 	}
 }
