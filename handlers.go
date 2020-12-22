@@ -1,13 +1,9 @@
 package main
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"io"
 	"net/http"
-	"os"
 
 	"github.com/pkg/errors"
 )
@@ -26,15 +22,7 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusNoContent)
 
-		clickUpSignature := request.Header.Get("X-Signature")
-		secret := []byte(os.Getenv("TASK_STATUS_UPDATED_SECRET"))
-		body := getBody(request)
-
-		hash := hmac.New(sha256.New, secret)
-		hash.Write(body)
-		generatedSignature := hex.EncodeToString(hash.Sum(nil))
-
-		if clickUpSignature != generatedSignature {
+		if !signatureVerified(request) {
 			log.Errorln(errors.Wrap(ErrSignatureMismatch, "taskStatusUpdatedHandler"))
 
 			writer.WriteHeader(http.StatusUnauthorized)
