@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -48,10 +49,12 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 			return
 		}
 
-		// var webhook Webhook
-		// if err := json.NewDecoder(request.Body).Decode(&webhook); err != nil {
-		// 	log.Errorln(errors.Wrap(err, "taskStatusUpdatedHandler"))
-		// }
+		var webhook Webhook
+		if err := json.NewDecoder(request.Body).Decode(&webhook); err != nil {
+			log.Errorln(errors.Wrap(err, "taskStatusUpdatedHandler"))
+		}
+
+		log.Infoln("Task ID:", webhook.TaskID)
 
 		// TODO: Get Task information
 		// TODO: Create Clubhouse Epic
