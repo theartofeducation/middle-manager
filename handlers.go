@@ -1,13 +1,11 @@
 package main
 
 import (
-	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -15,11 +13,6 @@ import (
 )
 
 const rootResponse = `{"message": "Locke, I told you I need those TPS reports done by noon today."}`
-
-// Custom errors.
-var (
-	ErrSignatureMismatch = errors.New("Signature mismatch")
-)
 
 func rootHandler() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
@@ -60,20 +53,4 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 		// TODO: Create Clubhouse Epic
 		// TODO: Send Epic to Clubhouse https://clubhouse.io/api/rest/v3/#Create-Epic
 	}
-}
-
-// Webhook holds the information for a webhook from ClickUp.
-type Webhook struct {
-	ID     string `json:"webhook_id"`
-	Event  string
-	TaskID string `json:"task_id"`
-}
-
-func getBody(request *http.Request) (bodyBytes []byte) {
-	if request.Body != nil {
-		bodyBytes, _ = ioutil.ReadAll(request.Body)
-		request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
-	}
-
-	return bodyBytes
 }
