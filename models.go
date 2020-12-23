@@ -17,6 +17,7 @@ type Task struct {
 	ID     string
 	Name   string
 	Status TaskStatus
+	URL    string
 }
 
 // TaskStatus holds the information for a Task's status on ClickUp.

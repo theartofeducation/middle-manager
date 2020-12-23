@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -74,8 +76,38 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 		}
 
 		if task.Status.Status == clickUpStatusReadyForDevelopment {
-			// Create Clubhouse Epic
-			// Send Epic to Clubhouse https://clubhouse.io/api/rest/v3/#Create-Epic
+			// TODO: Create Clubhouse Epic
+			epic := Epic{
+				Name:        task.Name,
+				Description: task.URL,
+			}
+
+			clubhouseRequestBody, _ := json.Marshal(epic) // TODO: Handle error
+			body := bytes.NewBuffer(clubhouseRequestBody)
+
+			clubhouseClient := &http.Client{}
+			url := os.Getenv("CLUBHOUSE_API_URL") + "/epics"
+			req, _ := http.NewRequest(http.MethodPost, url, body)
+			req.Header.Add("Clubhouse-Token", os.Getenv("CLUBHOUSE_API_TOKEN"))
+			req.Header.Add("Content-Type", "application/json")
+			clubhouseResponse, err := clubhouseClient.Do(req)
+
+			if err != nil {
+				log.Errorln("Error sending request to Clubhouse")
+				log.Errorln(err) // TODO: Wrap error
+			}
+
+			defer clubhouseResponse.Body.Close()
+			log.Infoln("Clubhouse Status:", clubhouseResponse.Status)
+
+			clubhouseBody, _ := ioutil.ReadAll(resp.Body)
+			log.Infoln(string(clubhouseBody))
 		}
 	}
+}
+
+// Epic holds the information for an Epic on Clubhouse.
+type Epic struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
