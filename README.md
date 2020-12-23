@@ -17,6 +17,13 @@ A service to handle API integrations for our tooling.
 
 ## Features
 
-### Create Clubhouse Epic
+### ClickUp + Clubhouse
+
+Middle Manager automates information updates between [ClickUp](https://clickup.com/) and [Clubhouse](https://clubhouse.io/).
+
+[ClickUP API](https://clickup20.docs.apiary.io/#)
+[Clubhouse API](https://clubhouse.io/api/rest/v3/)
+
+#### Create Clubhouse Epic
 
 When a ClickUp task is moved to the status Ready For Development an Epic will be created in Clubhouse.
