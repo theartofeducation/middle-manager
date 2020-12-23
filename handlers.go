@@ -25,19 +25,15 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 		writer.WriteHeader(http.StatusNoContent)
 
 		if !signatureVerified(request) {
-			log.Errorln(errors.Wrap(ErrSignatureMismatch, "taskStatusUpdatedHandler > Verify Signature"))
-
+			log.Errorln(errors.Wrap(ErrSignatureMismatch, "taskStatusUpdatedHandler > verifying signature"))
 			writer.WriteHeader(http.StatusUnauthorized)
-
 			return
 		}
 
 		var webhook Webhook
 		if err := json.NewDecoder(request.Body).Decode(&webhook); err != nil {
-			log.Errorln(errors.Wrap(err, "taskStatusUpdatedHandler > Decoding Webhook"))
-
+			log.Errorln(errors.Wrap(err, "taskStatusUpdatedHandler > decoding webhook"))
 			writer.WriteHeader(http.StatusUnprocessableEntity)
-
 			return
 		}
 
@@ -49,28 +45,21 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 		resp, err := client.Do(req)
 
 		if err != nil {
-			log.Errorln(errors.Wrap(err, "taskStatusUpdateHandler > ClickUp Get Task"))
-
+			log.Errorln(errors.Wrap(err, "taskStatusUpdateHandler > getting task from ClickUp"))
 			writer.WriteHeader(http.StatusInternalServerError)
-
 			return
 		}
 
-		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			log.Errorln(errors.Wrap(errors.New("API error"), "taskStatusUpdateHandler > ClickUp API Response"))
-
+			log.Errorln("taskStatusUpdateHandler > could not get Task from ClickUp with status", resp.StatusCode)
 			writer.WriteHeader(http.StatusInternalServerError)
-
 			return
 		}
 
 		var task Task
 		if err := json.NewDecoder(resp.Body).Decode((&task)); err != nil {
-			log.Errorln(errors.Wrap(err, "taskStatusUpdatedHandler > Decoding Task"))
-
+			log.Errorln(errors.Wrap(err, "taskStatusUpdatedHandler > decoding task"))
 			writer.WriteHeader(http.StatusUnprocessableEntity)
-
 			return
 		}
 
@@ -80,16 +69,16 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 				Description: task.URL,
 			}
 
-			clubhouseRequestBody, err := json.Marshal(epic)
+			body, err := json.Marshal(epic)
 			if err != nil {
-				log.Errorln(errors.Wrap(err, "taskStatusUpdateHandler > clubhouseRequestBody"))
+				log.Errorln(errors.Wrap(err, "taskStatusUpdateHandler > marshalling create Epic body"))
 				writer.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 
 			client = &http.Client{}
 			url := os.Getenv("CLUBHOUSE_API_URL") + "/epics"
-			req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(clubhouseRequestBody))
+			req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
 			req.Header.Add("Clubhouse-Token", os.Getenv("CLUBHOUSE_API_TOKEN"))
 			req.Header.Add("Content-Type", "application/json")
 			clubhouseResponse, err := client.Do(req)
@@ -101,12 +90,12 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 			}
 
 			if clubhouseResponse.StatusCode != http.StatusCreated {
-				log.Errorln("Clubhouse Epic not created with status", clubhouseResponse.StatusCode)
+				log.Errorln("taskStatusUpdatedHandler > Clubhouse Epic not created with status", clubhouseResponse.StatusCode)
 				writer.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 
-			log.Infoln("Created Epic", epic.Name)
+			log.Infoln("Created Epic:", epic.Name)
 		}
 	}
 }
