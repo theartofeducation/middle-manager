@@ -1,72 +1,75 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
+	"time"
 
-	"github.com/pkg/errors"
-
-	"github.com/getsentry/sentry-go"
-
-	"github.com/theartofeducation/go-template-repo/app"
-
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/pkg/errors"
 
 	"github.com/sirupsen/logrus"
 )
 
-// env variables
 var (
-	port string // The HTTP port the server will run on.
-	dsn  string // The Sentry DSN.
+	errorChan chan error
+	log       *logrus.Logger
 )
 
 func main() {
-	log := logrus.New()
+	log = logrus.New()
 
-	loadEnvVariables(log)
-
-	args := app.Args{
-		Router: mux.NewRouter(),
-		Log:    log,
-		DSN:    dsn,
+	if err := godotenv.Load(); err != nil {
+		log.Infoln("could not load env:", err)
 	}
-	a := app.NewApp(args)
 
-	errorChan := make(chan error, 2)
-	go a.StartServer(errorChan, port)
-	go handleInterrupt(errorChan)
+	router := mux.NewRouter()
+
+	loadRoutes(router)
+
+	server := &http.Server{
+		Addr:         "0.0.0.0:" + os.Getenv(("PORT")),
+		WriteTimeout: time.Second * 15,
+		ReadTimeout:  time.Second * 15,
+		IdleTimeout:  time.Second * 60,
+		Handler:      router,
+	}
+
+	errorChan = make(chan error, 2)
+
+	go startServer(server)
+	go handleInterrupt()
 
 	err := <-errorChan
 	err = errors.Wrap(err, "main")
-	sentry.CaptureMessage(err.Error())
 	log.Errorln(err)
 
-	a.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	defer cancel()
+
+	server.Shutdown(ctx)
+	log.Infoln("shutting down...")
+	os.Exit(0)
 }
 
-func loadEnvVariables(log *logrus.Logger) {
-	if err := godotenv.Load(); err != nil {
-		log.Infoln("could not load env file")
-	}
+func startServer(server *http.Server) {
+	log.Infof("Starting server on %s", server.Addr)
 
-	port = os.Getenv("PORT")
-	if strings.TrimSpace(port) == "" {
-		log.Fatal("port was not specified")
-	}
-
-	dsn = os.Getenv("SENTRY_DSN")
-	if strings.TrimSpace(dsn) == "" {
-		log.Infoln("Sentry DSN not specified")
-	}
+	errorChan <- http.ListenAndServe(
+		server.Addr,
+		handlers.CompressHandler(handlers.CombinedLoggingHandler(os.Stdout, server.Handler)),
+	)
 }
 
-func handleInterrupt(errorChan chan error) {
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, syscall.SIGINT)
-	errorChan <- fmt.Errorf("%s", <-signalChan)
+func handleInterrupt() {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGINT)
+
+	errorChan <- fmt.Errorf("%s", <-ch)
 }

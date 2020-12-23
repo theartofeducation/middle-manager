@@ -4,70 +4,40 @@ Taken from [Decision Management in Software Engineering](https://medium.com/swlh
 
 ---
 
-## 2020-11-17: What ORM should we use
+## 2020-12-18: How do we bridge the gap between ClickUp and Clubhouse
 
 ### Decision Makers
 
 * Christopher Lamm
+* Chris Poulton
+* Bob Yexley
 * Thomas Jean
+* Judy Mosley
 
 ### Context
 
-We will be using Go for several services and need to pick an ORM to use across them all, so we have uniformity.
+We need to be able to manage and work stories through our normal process in Clubhouse while allowing Chris to manage the product side in ClickUp.
 
 ### Solution
 
-[ent](https://github.com/facebook/ent)
+Develop a service that will automatically updated ClickUp and Clubhouse based on events in the opposite tool.
 
 #### Why This Solution
 
-This tool is backed by Facebook and its community which will give us a lot of examples and support.
+This will give us the most flexibility to perform the automation we need.
 
-Schema will be code and not hidden in tags.
+Chris can manager product in ClickUp.
 
-#### Limitation
-
-No known limitations at this time.
-
-### Rejected Solutions
-
-* [gorm](https://gorm.io/)
-    * More traditional ORM with expected overhead
-
----
-
-## 2020-11-17: What web framework should we use
-
-### Decision Makers
-
-* Christopher Lamm
-* Thomas Jean
-
-### Context
-
-We will be using Go for several services and need to pick a framework to use across them all, so we have uniformity.
-
-### Solution
-
-[gorilla/mux](https://github.com/gorilla/mux)
-
-#### Why This Solution
-
-Mux and Chi are pretty similar, and we can easily switch one out for the other.
-
-As of this writing Chi is not a compatible Go module while Mux is, so we're basing our decision on that.
+Engineering can manager work in Clubhouse.
 
 #### Limitation
 
-No limitations at the time of writing.
+Some actions might not be able to be automated and will have to be performed manually.
 
 ### Rejected Solutions
 
-* [Gin](https://github.com/gin-gonic/gin)
-    * Requires special middleware pattern
-    * Uses special Context struct over standard library
-* [Echo](https://github.com/labstack/echo)
-    * Requires special middleware pattern
-    * Uses special Context struct over standard library
-* [Chi](https://github.com/go-chi/chi)
-    * Not yet a compatible Go modules
+* Just use [ClickUp](http://clickup.com/)
+    * While most workflow issues seemed to have a hackable solution, the integration with GitHub was going to be too much work with every team member having to setup 4 integrations for every repo.
+* [Zapier](https://zapier.com/)
+    * Their integrations only flowed from ClickUp to Clubhouse.
+    * Very simple events supported and would not fit our use case.

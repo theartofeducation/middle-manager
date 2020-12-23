@@ -1,11 +1,11 @@
 {
-  "name": "go-template-repo",
+  "name": "middle-manager",
   "version": "0.0.1",
   "private": true,
-  "description": "A template repo for quickly starting Go projects.",
+  "description": "A service to handle API integrations for our tooling.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/theartofeducation/go-template-repo.git"
+    "url": "git+https://github.com/theartofeducation/middle-manager.git"
   },
   "author": {
     "name": "Christopher Lamm",
@@ -14,9 +14,9 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/theartofeducation/go-template-repo/issues"
+    "url": "https://github.com/theartofeducation/middle-manager/issues"
   },
-  "homepage": "https://github.com/theartofeducation/go-template-repo#readme",
+  "homepage": "https://github.com/theartofeducation/middle-manager#readme",
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-conventional": "^11.0.0",
@@ -25,8 +25,7 @@
   },
   "husky": {
     "hooks": {
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-push": "golangci-lint run"
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   }
 }
