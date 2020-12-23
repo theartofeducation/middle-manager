@@ -14,6 +14,7 @@ A service to handle API integrations for our tooling.
 1. Setup ngrok to tunnel to your local environment
 1. Create webhooks in ClickUp
 1. Run `go run .` to start the server
+1. Remove the created webhook when finished
 
 ## Features
 
