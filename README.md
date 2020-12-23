@@ -9,10 +9,11 @@ A service to handle API integrations for our tooling.
 ### Getting Started
 
 1. Copy `.env.sample` to `.env`
-1. Update `.env` values as needed
+1. Update `.env` values with API URLs and secrets
 1. Run `go get` to download dependencies
 1. Setup ngrok to tunnel to your local environment
-1. Create webhooks in ClickUp
+1. Create webhooks in ClickUp using their API
+1. Copy the webhook secret to the `.env` files
 1. Run `go run .` to start the server
 1. Remove the created webhook when finished
 
