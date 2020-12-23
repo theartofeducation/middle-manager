@@ -11,4 +11,12 @@ A service to handle API integrations for our tooling.
 1. Copy `.env.sample` to `.env`
 1. Update `.env` values as needed
 1. Run `go get` to download dependencies
+1. Setup ngrok to tunnel to your local environment
+1. Create webhooks in ClickUp
 1. Run `go run .` to start the server
+
+## Features
+
+### Create Clubhouse Epic
+
+When a ClickUp task is moved to the status Ready For Development an Epic will be created in Clubhouse.
