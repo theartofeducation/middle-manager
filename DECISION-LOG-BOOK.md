@@ -16,11 +16,11 @@ Taken from [Decision Management in Software Engineering](https://medium.com/swlh
 
 ### Context
 
-We need to be able to manager and work stories through our normal process in Clubhouse while allowing Chris to manage the product side in ClickUp.
+We need to be able to manage and work stories through our normal process in Clubhouse while allowing Chris to manage the product side in ClickUp.
 
 ### Solution
 
-Developer a service that will automatically updated ClickUp and Clubhouse based on events in the opposite tool.
+Develop a service that will automatically updated ClickUp and Clubhouse based on events in the opposite tool.
 
 #### Why This Solution
 
