@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -76,38 +75,38 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 		}
 
 		if task.Status.Status == clickUpStatusReadyForDevelopment {
-			// TODO: Create Clubhouse Epic
 			epic := Epic{
 				Name:        task.Name,
 				Description: task.URL,
 			}
 
-			clubhouseRequestBody, _ := json.Marshal(epic) // TODO: Handle error
-			body := bytes.NewBuffer(clubhouseRequestBody)
-
-			clubhouseClient := &http.Client{}
-			url := os.Getenv("CLUBHOUSE_API_URL") + "/epics"
-			req, _ := http.NewRequest(http.MethodPost, url, body)
-			req.Header.Add("Clubhouse-Token", os.Getenv("CLUBHOUSE_API_TOKEN"))
-			req.Header.Add("Content-Type", "application/json")
-			clubhouseResponse, err := clubhouseClient.Do(req)
-
+			clubhouseRequestBody, err := json.Marshal(epic)
 			if err != nil {
-				log.Errorln("Error sending request to Clubhouse")
-				log.Errorln(err) // TODO: Wrap error
+				log.Errorln(errors.Wrap(err, "taskStatusUpdateHandler > clubhouseRequestBody"))
+				writer.WriteHeader(http.StatusInternalServerError)
+				return
 			}
 
-			defer clubhouseResponse.Body.Close()
-			log.Infoln("Clubhouse Status:", clubhouseResponse.Status)
+			client = &http.Client{}
+			url := os.Getenv("CLUBHOUSE_API_URL") + "/epics"
+			req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(clubhouseRequestBody))
+			req.Header.Add("Clubhouse-Token", os.Getenv("CLUBHOUSE_API_TOKEN"))
+			req.Header.Add("Content-Type", "application/json")
+			clubhouseResponse, err := client.Do(req)
 
-			clubhouseBody, _ := ioutil.ReadAll(resp.Body)
-			log.Infoln(string(clubhouseBody))
+			if err != nil {
+				log.Errorln(errors.Wrap(err, "taskStatusUpdateHandler > send request to clubhouse"))
+				writer.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			if clubhouseResponse.StatusCode != http.StatusCreated {
+				log.Errorln("Clubhouse Epic not created with status", clubhouseResponse.StatusCode)
+				writer.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			log.Infoln("Created Epic", epic.Name)
 		}
 	}
-}
-
-// Epic holds the information for an Epic on Clubhouse.
-type Epic struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
 }

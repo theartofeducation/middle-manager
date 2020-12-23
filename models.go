@@ -24,3 +24,9 @@ type Task struct {
 type TaskStatus struct {
 	Status ClickUpStatus
 }
+
+// Epic holds the information for an Epic on Clubhouse.
+type Epic struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
