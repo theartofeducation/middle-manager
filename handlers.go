@@ -39,28 +39,9 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 			return
 		}
 
-		client := &http.Client{}
-		url := cuClient.URL + "/task/" + webhook.TaskID
-		req, _ := http.NewRequest(http.MethodGet, url, nil)
-		req.Header.Add("Authorization", cuClient.Key)
-		req.Header.Add("Content-Type", "application/json")
-		resp, err := client.Do(req)
-
+		task, err := cuClient.GetTask(webhook.TaskID)
 		if err != nil {
-			log.Errorln(errors.Wrap(err, "taskStatusUpdateHandler > getting task from ClickUp"))
-			writer.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			log.Errorln("taskStatusUpdateHandler > could not get Task from ClickUp with status", resp.StatusCode)
-			writer.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		var task clickup.Task
-		if err := json.NewDecoder(resp.Body).Decode((&task)); err != nil {
-			log.Errorln(errors.Wrap(err, "taskStatusUpdatedHandler > decoding task"))
+			log.Errorln(err)
 			writer.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
@@ -78,7 +59,7 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 				return
 			}
 
-			client = &http.Client{}
+			client := &http.Client{}
 			url := chClient.URL + "/epics"
 			req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
 			req.Header.Add("Clubhouse-Token", chClient.Token)
