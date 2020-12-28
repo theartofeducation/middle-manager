@@ -6,3 +6,14 @@ type Client struct {
 	Key                     string
 	TaskStatusUpdatedSecret string
 }
+
+// NewClient creates and returns a new ClickUp Client.
+func NewClient(url, key, taskStatusUpdatedSecret string) Client {
+	client := Client{
+		URL:                     url,
+		Key:                     key,
+		TaskStatusUpdatedSecret: taskStatusUpdatedSecret,
+	}
+
+	return client
+}
