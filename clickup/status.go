@@ -3,4 +3,7 @@ package clickup
 // Status holds the various statuses of a ClickUp Task
 type Status string
 
-const StatusReadyForDevelopment Status = "ready for development"
+// ClickUp Statuses
+const (
+	StatusReadyForDevelopment Status = "ready for development"
+)
