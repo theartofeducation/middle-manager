@@ -26,8 +26,8 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 		signature := request.Header.Get("X-Signature")
 		body := getBody(request)
 
-		if !cuClient.IsSignatureValid(signature, body) {
-			log.Errorln(errors.Wrap(ErrSignatureMismatch, "taskStatusUpdatedHandler > verifying signature"))
+		if err := cuClient.VerifySignature(signature, body); err != nil {
+			log.Errorln(errors.Wrap(err, "taskStatusUpdatedHandler > verifying signature"))
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
