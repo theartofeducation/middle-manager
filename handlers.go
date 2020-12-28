@@ -24,8 +24,6 @@ func rootHandler() http.HandlerFunc {
 
 func taskStatusUpdatedHandler() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		writer.WriteHeader(http.StatusNoContent)
-
 		if !signatureVerified(request) {
 			log.Errorln(errors.Wrap(ErrSignatureMismatch, "taskStatusUpdatedHandler > verifying signature"))
 			writer.WriteHeader(http.StatusUnauthorized)
@@ -40,9 +38,9 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 		}
 
 		client := &http.Client{}
-		url := os.Getenv("CLICKUP_API_URL") + "/task/" + webhook.TaskID
+		url := clickUp.URL + "/task/" + webhook.TaskID
 		req, _ := http.NewRequest(http.MethodGet, url, nil)
-		req.Header.Add("Authorization", os.Getenv("CLICKUP_API_KEY"))
+		req.Header.Add("Authorization", clickUp.Key)
 		req.Header.Add("Content-Type", "application/json")
 		resp, err := client.Do(req)
 
@@ -98,6 +96,8 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 			}
 
 			log.Infoln("Created Epic:", epic.Name)
+
+			writer.WriteHeader(http.StatusNoContent)
 		}
 	}
 }

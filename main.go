@@ -15,11 +15,14 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/theartofeducation/middle-manager/clickup"
 )
 
 var (
 	errorChan chan error
 	log       *logrus.Logger
+	clickUp   clickup.Client
 )
 
 func main() {
@@ -27,6 +30,12 @@ func main() {
 
 	if err := godotenv.Load(); err != nil {
 		log.Infoln("could not load env:", err)
+	}
+
+	clickUp = clickup.Client{
+		URL:                     os.Getenv("CLICKUP_API_URL"),
+		Key:                     os.Getenv("CLICKUP_API_KEY"),
+		TaskStatusUpdatedSecret: os.Getenv("TASK_STATUS_UPDATED_SECRET"),
 	}
 
 	router := mux.NewRouter()

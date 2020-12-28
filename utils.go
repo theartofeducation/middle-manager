@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"io/ioutil"
 	"net/http"
-	"os"
 )
 
 func getBody(request *http.Request) (bodyBytes []byte) {
@@ -21,7 +20,8 @@ func getBody(request *http.Request) (bodyBytes []byte) {
 
 func signatureVerified(request *http.Request) bool {
 	clickUpSignature := request.Header.Get("X-Signature")
-	secret := []byte(os.Getenv("TASK_STATUS_UPDATED_SECRET"))
+	secret := []byte(clickUp.TaskStatusUpdatedSecret)
+
 	body := getBody(request)
 
 	hash := hmac.New(sha256.New, secret)
