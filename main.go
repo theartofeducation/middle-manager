@@ -17,12 +17,14 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/theartofeducation/middle-manager/clickup"
+	"github.com/theartofeducation/middle-manager/clubhouse"
 )
 
 var (
 	errorChan chan error
 	log       *logrus.Logger
-	clickUp   clickup.Client
+	cuClient  clickup.Client
+	chClient  clubhouse.Client
 )
 
 func main() {
@@ -32,10 +34,15 @@ func main() {
 		log.Infoln("could not load env:", err)
 	}
 
-	clickUp = clickup.Client{
+	cuClient = clickup.Client{
 		URL:                     os.Getenv("CLICKUP_API_URL"),
 		Key:                     os.Getenv("CLICKUP_API_KEY"),
 		TaskStatusUpdatedSecret: os.Getenv("TASK_STATUS_UPDATED_SECRET"),
+	}
+
+	chClient = clubhouse.Client{
+		URL:   os.Getenv("CLUBHOUSE_API_URL"),
+		Token: os.Getenv("CLUBHOUSE_API_TOKEN"),
 	}
 
 	router := mux.NewRouter()

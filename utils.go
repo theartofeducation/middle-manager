@@ -20,7 +20,7 @@ func getBody(request *http.Request) (bodyBytes []byte) {
 
 func signatureVerified(request *http.Request) bool {
 	clickUpSignature := request.Header.Get("X-Signature")
-	secret := []byte(clickUp.TaskStatusUpdatedSecret)
+	secret := []byte(cuClient.TaskStatusUpdatedSecret)
 
 	body := getBody(request)
 

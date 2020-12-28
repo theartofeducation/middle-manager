@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"os"
 
 	"github.com/pkg/errors"
 	"github.com/theartofeducation/middle-manager/clickup"
@@ -38,9 +37,9 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 		}
 
 		client := &http.Client{}
-		url := clickUp.URL + "/task/" + webhook.TaskID
+		url := cuClient.URL + "/task/" + webhook.TaskID
 		req, _ := http.NewRequest(http.MethodGet, url, nil)
-		req.Header.Add("Authorization", clickUp.Key)
+		req.Header.Add("Authorization", cuClient.Key)
 		req.Header.Add("Content-Type", "application/json")
 		resp, err := client.Do(req)
 
@@ -77,9 +76,9 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 			}
 
 			client = &http.Client{}
-			url := os.Getenv("CLUBHOUSE_API_URL") + "/epics"
+			url := chClient.URL + "/epics"
 			req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
-			req.Header.Add("Clubhouse-Token", os.Getenv("CLUBHOUSE_API_TOKEN"))
+			req.Header.Add("Clubhouse-Token", chClient.Token)
 			req.Header.Add("Content-Type", "application/json")
 			clubhouseResponse, err := client.Do(req)
 
@@ -96,8 +95,8 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 			}
 
 			log.Infoln("Created Epic:", epic.Name)
-
-			writer.WriteHeader(http.StatusNoContent)
 		}
+
+		writer.WriteHeader(http.StatusNoContent)
 	}
 }
