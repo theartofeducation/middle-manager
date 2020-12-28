@@ -9,6 +9,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+const apiURL = "https://api.clubhouse.io/api/v3"
+
 // Client handles interaction with the Clubhouse API.
 type Client struct {
 	URL   string
@@ -16,9 +18,8 @@ type Client struct {
 }
 
 // NewClient creates and returns a new Clubhouse Client.
-func NewClient(url, token string) Client {
+func NewClient(token string) Client {
 	client := Client{
-		URL:   url,
 		Token: token,
 	}
 
@@ -39,7 +40,7 @@ func (c Client) CreateEpic(name, description string) (Epic, error) {
 
 	httpClient := &http.Client{}
 
-	url := c.URL + "/epics"
+	url := apiURL + "/epics"
 
 	request, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
 	request.Header.Add("Clubhouse-Token", c.Token)

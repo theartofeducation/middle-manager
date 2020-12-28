@@ -12,17 +12,17 @@ import (
 	"github.com/pkg/errors"
 )
 
+const apiURL = "https://api.clickup.com/api/v2"
+
 // Client handles interaction with the ClickUp API.
 type Client struct {
-	URL                     string
 	Key                     string
 	TaskStatusUpdatedSecret string
 }
 
 // NewClient creates and returns a new ClickUp Client.
-func NewClient(url, key, taskStatusUpdatedSecret string) Client {
+func NewClient(key, taskStatusUpdatedSecret string) Client {
 	client := Client{
-		URL:                     url,
 		Key:                     key,
 		TaskStatusUpdatedSecret: taskStatusUpdatedSecret,
 	}
@@ -62,7 +62,7 @@ func (c Client) GetWebhook(body io.ReadCloser) (Webhook, error) {
 func (c Client) GetTask(taskID string) (Task, error) {
 	httpClient := &http.Client{}
 
-	url := c.URL + "/task/" + taskID
+	url := apiURL + "/task/" + taskID
 
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
 	request.Header.Add("Authorization", c.Key)

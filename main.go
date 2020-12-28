@@ -34,8 +34,8 @@ func main() {
 		log.Infoln("could not load env:", err)
 	}
 
-	cuClient = clickup.NewClient(os.Getenv("CLICKUP_API_URL"), os.Getenv("CLICKUP_API_KEY"), os.Getenv("TASK_STATUS_UPDATED_SECRET"))
-	chClient = clubhouse.NewClient(os.Getenv("CLUBHOUSE_API_URL"), os.Getenv("CLUBHOUSE_API_TOKEN"))
+	cuClient = clickup.NewClient(os.Getenv("CLICKUP_API_KEY"), os.Getenv("TASK_STATUS_UPDATED_SECRET"))
+	chClient = clubhouse.NewClient(os.Getenv("CLUBHOUSE_API_TOKEN"))
 
 	router := mux.NewRouter()
 
