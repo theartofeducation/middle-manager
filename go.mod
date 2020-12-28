@@ -1,5 +1,6 @@
 module github.com/theartofeducation/middle-manager
 
+// +heroku goVersion go1.15
 go 1.15
 
 require (
