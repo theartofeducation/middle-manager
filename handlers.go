@@ -23,7 +23,10 @@ func rootHandler() http.HandlerFunc {
 
 func taskStatusUpdatedHandler() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		if !signatureVerified(request) {
+		signature := request.Header.Get("X-Signature")
+		body := getBody(request)
+
+		if !cuClient.IsSignatureValid(signature, body) {
 			log.Errorln(errors.Wrap(ErrSignatureMismatch, "taskStatusUpdatedHandler > verifying signature"))
 			writer.WriteHeader(http.StatusUnauthorized)
 			return

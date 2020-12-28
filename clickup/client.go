@@ -1,5 +1,14 @@
 package clickup
 
+import (
+	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"io/ioutil"
+	"net/http"
+)
+
 // Client handles interaction with the ClickUp API.
 type Client struct {
 	URL                     string
@@ -16,4 +25,24 @@ func NewClient(url, key, taskStatusUpdatedSecret string) Client {
 	}
 
 	return client
+}
+
+// IsSignatureValid validates a Webhook's signature.
+func (c Client) IsSignatureValid(signature string, body []byte) bool {
+	secret := []byte(c.TaskStatusUpdatedSecret)
+
+	hash := hmac.New(sha256.New, secret)
+	hash.Write(body)
+	generatedSignature := hex.EncodeToString(hash.Sum(nil))
+
+	return signature == generatedSignature
+}
+
+func getBody(request *http.Request) (bodyBytes []byte) {
+	if request.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(request.Body)
+		request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+	}
+
+	return bodyBytes
 }
