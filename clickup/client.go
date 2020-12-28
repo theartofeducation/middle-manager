@@ -4,6 +4,10 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
+	"io"
+
+	"github.com/pkg/errors"
 )
 
 // Client handles interaction with the ClickUp API.
@@ -37,4 +41,17 @@ func (c Client) VerifySignature(signature string, body []byte) error {
 	}
 
 	return nil
+}
+
+// GetWebhook parses a Webhook's body and returns a Webhook struct.
+func (c Client) GetWebhook(body io.ReadCloser) (Webhook, error) {
+	defer body.Close()
+
+	var webhook Webhook
+
+	if err := json.NewDecoder(body).Decode(&webhook); err != nil {
+		return webhook, errors.Wrap(err, "Could not parse Webhook body")
+	}
+
+	return webhook, nil
 }

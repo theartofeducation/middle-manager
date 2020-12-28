@@ -32,9 +32,9 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 			return
 		}
 
-		var webhook clickup.Webhook
-		if err := json.NewDecoder(request.Body).Decode(&webhook); err != nil {
-			log.Errorln(errors.Wrap(err, "taskStatusUpdatedHandler > decoding webhook"))
+		webhook, err := cuClient.GetWebhook(request.Body)
+		if err != nil {
+			log.Errorln(err)
 			writer.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
