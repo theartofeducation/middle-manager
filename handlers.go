@@ -8,6 +8,8 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
+	"github.com/theartofeducation/middle-manager/clickup"
+	"github.com/theartofeducation/middle-manager/clubhouse"
 )
 
 const rootResponse = `{"message": "Locke, I told you I need those TPS reports done by noon today."}`
@@ -30,7 +32,7 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 			return
 		}
 
-		var webhook Webhook
+		var webhook clickup.Webhook
 		if err := json.NewDecoder(request.Body).Decode(&webhook); err != nil {
 			log.Errorln(errors.Wrap(err, "taskStatusUpdatedHandler > decoding webhook"))
 			writer.WriteHeader(http.StatusUnprocessableEntity)
@@ -56,15 +58,15 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 			return
 		}
 
-		var task Task
+		var task clickup.Task
 		if err := json.NewDecoder(resp.Body).Decode((&task)); err != nil {
 			log.Errorln(errors.Wrap(err, "taskStatusUpdatedHandler > decoding task"))
 			writer.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
 
-		if task.Status.Status == clickUpStatusReadyForDevelopment {
-			epic := Epic{
+		if task.Status.Status == clickup.StatusReadyForDevelopment {
+			epic := clubhouse.Epic{
 				Name:        task.Name,
 				Description: task.URL,
 			}
