@@ -50,7 +50,7 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 		task, err := app.clickup.GetTask(webhook.TaskID)
 		if err != nil {
 			app.log.Errorln(err)
-			writer.WriteHeader(http.StatusUnprocessableEntity)
+			writer.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 

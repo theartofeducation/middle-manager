@@ -80,7 +80,7 @@ func Test_taskStatusUpdatedHandler(t *testing.T) {
 			t.Errorf("respones return wrong status: got %d want %d", response.Code, http.StatusUnauthorized)
 		}
 
-		want := fmt.Sprint(ErrMissingSignature.Error())
+		want := fmt.Sprint(ErrMissingSignature)
 		if hook.LastEntry().Message != want {
 			t.Errorf("creation log is incorrect: got %q want %q", hook.LastEntry().Message, want)
 		}
@@ -161,6 +161,33 @@ func Test_taskStatusUpdatedHandler(t *testing.T) {
 		}
 
 		want := fmt.Sprint("Could not parse Webhook body: ", clickup.ErrTest)
+		if hook.LastEntry().Message != want {
+			t.Errorf("creation log is incorrect: got %q want %q", hook.LastEntry().Message, want)
+		}
+	})
+
+	t.Run("it returns 500 if task cannot be fetched", func(t *testing.T) {
+		logger, hook := test.NewNullLogger()
+		app = App{
+			log:       logger,
+			clickup:   clickup.MockClient{GetTaskError: true},
+			clubhouse: clubhouse.MockClient{},
+		}
+
+		body := []byte(`{"webhook_id": "def456", "event": "taskStatusUpdated", "task_id": "test1"}`)
+		request, _ := http.NewRequest(http.MethodPost, "/task-status-updated", bytes.NewBuffer(body))
+		request.Header.Add("X-Signature", "abc123")
+
+		response := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(taskStatusUpdatedHandler())
+		handler.ServeHTTP(response, request)
+
+		if response.Code != http.StatusInternalServerError {
+			t.Errorf("respones return wrong status: got %d want %d", response.Code, http.StatusInternalServerError)
+		}
+
+		want := fmt.Sprint(clickup.ErrTest)
 		if hook.LastEntry().Message != want {
 			t.Errorf("creation log is incorrect: got %q want %q", hook.LastEntry().Message, want)
 		}
