@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"io"
 	"net/http"
 
@@ -21,6 +22,18 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		signature := request.Header.Get("X-Signature")
 		body := getBody(request)
+
+		if signature == "" {
+			app.log.Errorln(errors.New("Signature is missing"))
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		if body == nil {
+			app.log.Errorln(errors.New("Body is empty"))
+			writer.WriteHeader(http.StatusUnprocessableEntity)
+			return
+		}
 
 		if err := app.clickup.VerifySignature(signature, body); err != nil {
 			app.log.Errorln(err)
