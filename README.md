@@ -23,8 +23,8 @@ A service to handle API integrations for our tooling.
 
 Middle Manager automates information updates between [ClickUp](https://clickup.com/) and [Clubhouse](https://clubhouse.io/).
 
-[ClickUP API](https://clickup20.docs.apiary.io/#)
-[Clubhouse API](https://clubhouse.io/api/rest/v3/)
+* [ClickUP API](https://clickup20.docs.apiary.io/#)
+* [Clubhouse API](https://clubhouse.io/api/rest/v3/)
 
 #### Create Clubhouse Epic
 
