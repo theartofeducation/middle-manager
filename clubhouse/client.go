@@ -28,6 +28,8 @@ func NewClient(token string) Client {
 
 // CreateEpic creates an Epic on Clubhouse.
 func (c Client) CreateEpic(name, description string) (Epic, error) {
+	// TODO: check if epic exists ch246
+
 	epic := Epic{
 		Name:        name,
 		Description: description,

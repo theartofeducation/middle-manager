@@ -22,35 +22,35 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 		signature := request.Header.Get("X-Signature")
 		body := getBody(request)
 
-		if err := cuClient.VerifySignature(signature, body); err != nil {
-			log.Errorln(err)
+		if err := app.clickup.VerifySignature(signature, body); err != nil {
+			app.log.Errorln(err)
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		webhook, err := cuClient.ParseWebhook(request.Body)
+		webhook, err := app.clickup.ParseWebhook(request.Body)
 		if err != nil {
-			log.Errorln(err)
+			app.log.Errorln(err)
 			writer.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
 
-		task, err := cuClient.GetTask(webhook.TaskID)
+		task, err := app.clickup.GetTask(webhook.TaskID)
 		if err != nil {
-			log.Errorln(err)
+			app.log.Errorln(err)
 			writer.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
 
 		if task.Status.Status == clickup.StatusReadyForDevelopment {
-			epic, err := chClient.CreateEpic(task.Name, task.URL)
+			epic, err := app.clubhouse.CreateEpic(task.Name, task.URL)
 			if err != nil {
-				log.Errorln(err)
+				app.log.Errorln(err)
 				writer.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 
-			log.Infoln("Created Epic:", epic.Name)
+			app.log.Infoln("Created Epic:", epic.Name)
 		}
 
 		writer.WriteHeader(http.StatusNoContent)
