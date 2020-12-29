@@ -192,4 +192,34 @@ func Test_taskStatusUpdatedHandler(t *testing.T) {
 			t.Errorf("creation log is incorrect: got %q want %q", hook.LastEntry().Message, want)
 		}
 	})
+
+	t.Run("it returns 500 if epic cannot be created", func(t *testing.T) {
+		status := clickup.TaskStatus{Status: clickup.StatusReadyForDevelopment}
+		task := clickup.Task{Status: status}
+
+		logger, hook := test.NewNullLogger()
+		app = App{
+			log:       logger,
+			clickup:   clickup.MockClient{Task: task},
+			clubhouse: clubhouse.MockClient{CreateEpicError: true},
+		}
+
+		body := []byte(`{"webhook_id": "def456", "event": "taskStatusUpdated", "task_id": "test1"}`)
+		request, _ := http.NewRequest(http.MethodPost, "/task-status-updated", bytes.NewBuffer(body))
+		request.Header.Add("X-Signature", "abc123")
+
+		response := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(taskStatusUpdatedHandler())
+		handler.ServeHTTP(response, request)
+
+		if response.Code != http.StatusInternalServerError {
+			t.Errorf("respones return wrong status: got %d want %d", response.Code, http.StatusInternalServerError)
+		}
+
+		want := fmt.Sprint(clubhouse.ErrTest)
+		if hook.LastEntry().Message != want {
+			t.Errorf("creation log is incorrect: got %q want %q", hook.LastEntry().Message, want)
+		}
+	})
 }
