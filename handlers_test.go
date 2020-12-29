@@ -59,4 +59,30 @@ func Test_taskStatusUpdatedHandler(t *testing.T) {
 			t.Errorf("creation log is incorrect: got %q want %q", hook.LastEntry().Message, want)
 		}
 	})
+
+	t.Run("returns 401 if signature is not present", func(t *testing.T) {
+		logger, hook := test.NewNullLogger()
+		app = App{
+			log:       logger,
+			clickup:   clickup.MockClient{},
+			clubhouse: clubhouse.MockClient{},
+		}
+
+		body := []byte(`{"webhook_id": "def456", "event": "taskStatusUpdated", "task_id": "test1"}`)
+		request, _ := http.NewRequest(http.MethodPost, "/task-status-updated", bytes.NewBuffer(body))
+
+		response := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(taskStatusUpdatedHandler())
+		handler.ServeHTTP(response, request)
+
+		if response.Code != http.StatusUnauthorized {
+			t.Errorf("respones return wrong status: got %d want %d", response.Code, http.StatusNoContent)
+		}
+
+		want := fmt.Sprint(ErrMissingSignature.Error())
+		if hook.LastEntry().Message != want {
+			t.Errorf("creation log is incorrect: got %q want %q", hook.LastEntry().Message, want)
+		}
+	})
 }

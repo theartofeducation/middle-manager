@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"io"
 	"net/http"
 
@@ -24,13 +23,13 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 		body := getBody(request)
 
 		if signature == "" {
-			app.log.Errorln(errors.New("Signature is missing"))
+			app.log.Errorln(ErrMissingSignature)
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
 		if body == nil {
-			app.log.Errorln(errors.New("Body is empty"))
+			app.log.Errorln(ErrEmptyBody)
 			writer.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
