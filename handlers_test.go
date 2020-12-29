@@ -60,7 +60,7 @@ func Test_taskStatusUpdatedHandler(t *testing.T) {
 		}
 	})
 
-	t.Run("returns 401 if signature is not present", func(t *testing.T) {
+	t.Run("it returns 401 if signature is not present", func(t *testing.T) {
 		logger, hook := test.NewNullLogger()
 		app = App{
 			log:       logger,
@@ -77,10 +77,36 @@ func Test_taskStatusUpdatedHandler(t *testing.T) {
 		handler.ServeHTTP(response, request)
 
 		if response.Code != http.StatusUnauthorized {
-			t.Errorf("respones return wrong status: got %d want %d", response.Code, http.StatusNoContent)
+			t.Errorf("respones return wrong status: got %d want %d", response.Code, http.StatusUnauthorized)
 		}
 
 		want := fmt.Sprint(ErrMissingSignature.Error())
+		if hook.LastEntry().Message != want {
+			t.Errorf("creation log is incorrect: got %q want %q", hook.LastEntry().Message, want)
+		}
+	})
+
+	t.Run("it 422 if body is empty", func(t *testing.T) {
+		logger, hook := test.NewNullLogger()
+		app = App{
+			log:       logger,
+			clickup:   clickup.MockClient{},
+			clubhouse: clubhouse.MockClient{},
+		}
+
+		request, _ := http.NewRequest(http.MethodPost, "/task-status-updated", nil)
+		request.Header.Add("X-Signature", "abc123")
+
+		response := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(taskStatusUpdatedHandler())
+		handler.ServeHTTP(response, request)
+
+		if response.Code != http.StatusUnprocessableEntity {
+			t.Errorf("respones return wrong status: got %d want %d", response.Code, http.StatusUnprocessableEntity)
+		}
+
+		want := fmt.Sprint(ErrEmptyBody)
 		if hook.LastEntry().Message != want {
 			t.Errorf("creation log is incorrect: got %q want %q", hook.LastEntry().Message, want)
 		}
