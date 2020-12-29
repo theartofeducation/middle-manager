@@ -66,9 +66,11 @@ func (c Client) CreateEpic(name, description string) (Epic, error) {
 }
 
 // MockClient is a mock Client to use for testing.
-type MockClient struct{}
+type MockClient struct {
+	Epic Epic
+}
 
 // CreateEpic mock creates an Epic on Clubhouse.
 func (c MockClient) CreateEpic(name, description string) (Epic, error) {
-	return Epic{}, nil
+	return c.Epic, nil
 }

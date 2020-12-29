@@ -95,11 +95,12 @@ func (c Client) GetTask(taskID string) (Task, error) {
 
 // MockClient is a mock Client to use for testing.
 type MockClient struct {
+	Task Task
 }
 
 // GetTask mock fetches and returns a Task from ClickUp.
 func (c MockClient) GetTask(taskID string) (Task, error) {
-	return Task{}, nil
+	return c.Task, nil
 }
 
 // ParseWebhook mock parses a Webhook's body and returns a Webhook struct.
