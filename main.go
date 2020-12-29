@@ -28,8 +28,8 @@ var (
 // App holds the application dependencies.
 type App struct {
 	log       *logrus.Logger
-	clickup   clickup.Client
-	clubhouse clubhouse.Client
+	clickup   clickup.CUClient
+	clubhouse clubhouse.CHClient
 }
 
 func main() {

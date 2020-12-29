@@ -12,6 +12,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+// CUClient defines available methods.
+type CUClient interface {
+	VerifySignature(signature string, body []byte) error
+	ParseWebhook(body io.ReadCloser) (Webhook, error)
+	GetTask(taskID string) (Task, error)
+}
+
 const apiURL = "https://api.clickup.com/api/v2"
 
 // Client handles interaction with the ClickUp API.
@@ -21,7 +28,7 @@ type Client struct {
 }
 
 // NewClient creates and returns a new ClickUp Client.
-func NewClient(key, taskStatusUpdatedSecret string) Client {
+func NewClient(key, taskStatusUpdatedSecret string) CUClient {
 	client := Client{
 		Key:                     key,
 		TaskStatusUpdatedSecret: taskStatusUpdatedSecret,
@@ -84,4 +91,23 @@ func (c Client) GetTask(taskID string) (Task, error) {
 	}
 
 	return task, nil
+}
+
+// MockClient is a mock Client to use for testing.
+type MockClient struct {
+}
+
+// GetTask mock fetches and returns a Task from ClickUp.
+func (c MockClient) GetTask(taskID string) (Task, error) {
+	return Task{}, nil
+}
+
+// ParseWebhook mock parses a Webhook's body and returns a Webhook struct.
+func (c MockClient) ParseWebhook(body io.ReadCloser) (Webhook, error) {
+	return Webhook{}, nil
+}
+
+// VerifySignature mock validates a Webhook's signature.
+func (c MockClient) VerifySignature(signature string, body []byte) error {
+	return nil
 }

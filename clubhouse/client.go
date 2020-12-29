@@ -9,6 +9,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+// CHClient defines available methods.
+type CHClient interface {
+	CreateEpic(name, description string) (Epic, error)
+}
+
 const apiURL = "https://api.clubhouse.io/api/v3"
 
 // Client handles interaction with the Clubhouse API.
@@ -58,4 +63,12 @@ func (c Client) CreateEpic(name, description string) (Epic, error) {
 	}
 
 	return epic, nil
+}
+
+// MockClient is a mock Client to use for testing.
+type MockClient struct{}
+
+// CreateEpic mock creates an Epic on Clubhouse.
+func (c MockClient) CreateEpic(name, description string) (Epic, error) {
+	return Epic{}, nil
 }
