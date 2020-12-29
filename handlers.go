@@ -4,7 +4,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/pkg/errors"
 	"github.com/theartofeducation/middle-manager/clickup"
 )
 
@@ -24,12 +23,12 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 		body := getBody(request)
 
 		if err := cuClient.VerifySignature(signature, body); err != nil {
-			log.Errorln(errors.Wrap(err, "taskStatusUpdatedHandler > verifying signature"))
+			log.Errorln(err)
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		webhook, err := cuClient.GetWebhook(request.Body)
+		webhook, err := cuClient.ParseWebhook(request.Body)
 		if err != nil {
 			log.Errorln(err)
 			writer.WriteHeader(http.StatusUnprocessableEntity)

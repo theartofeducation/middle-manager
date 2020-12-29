@@ -45,8 +45,8 @@ func (c Client) VerifySignature(signature string, body []byte) error {
 	return nil
 }
 
-// GetWebhook parses a Webhook's body and returns a Webhook struct.
-func (c Client) GetWebhook(body io.ReadCloser) (Webhook, error) {
+// ParseWebhook parses a Webhook's body and returns a Webhook struct.
+func (c Client) ParseWebhook(body io.ReadCloser) (Webhook, error) {
 	defer body.Close()
 
 	var webhook Webhook
