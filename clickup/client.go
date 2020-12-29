@@ -39,10 +39,10 @@ func (c Client) VerifySignature(signature string, body []byte) error {
 	generatedSignature := hex.EncodeToString(hash.Sum(nil))
 
 	if signature == generatedSignature {
-		return ErrSignatureMismatch
+		return nil
 	}
 
-	return nil
+	return ErrSignatureMismatch
 }
 
 // ParseWebhook parses a Webhook's body and returns a Webhook struct.
