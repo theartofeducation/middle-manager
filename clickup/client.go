@@ -95,7 +95,8 @@ func (c Client) GetTask(taskID string) (Task, error) {
 
 // MockClient is a mock Client to use for testing.
 type MockClient struct {
-	Task Task
+	Task                 Task
+	VerifySignatureError bool
 }
 
 // GetTask mock fetches and returns a Task from ClickUp.
@@ -110,5 +111,9 @@ func (c MockClient) ParseWebhook(body io.ReadCloser) (Webhook, error) {
 
 // VerifySignature mock validates a Webhook's signature.
 func (c MockClient) VerifySignature(signature string, body []byte) error {
+	if c.VerifySignatureError {
+		return ErrSignatureMismatch
+	}
+
 	return nil
 }
