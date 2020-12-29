@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -28,14 +29,19 @@ func Test_rootHandler(t *testing.T) {
 
 func Test_taskStatusUpdatedHandler(t *testing.T) {
 	t.Run("it creates an Epic when Task is updated to Ready For Development", func(t *testing.T) {
-		logger, _ := test.NewNullLogger()
+		status := clickup.TaskStatus{Status: clickup.StatusReadyForDevelopment}
+		task := clickup.Task{Status: status}
+
+		epic := clubhouse.Epic{Name: "Test Epic"}
+
+		logger, hook := test.NewNullLogger()
 		app = App{
 			log:       logger,
-			clickup:   clickup.MockClient{},
-			clubhouse: clubhouse.MockClient{},
+			clickup:   clickup.MockClient{Task: task},
+			clubhouse: clubhouse.MockClient{Epic: epic},
 		}
 
-		body := []byte(`{}`)
+		body := []byte(`{"webhook_id": "def456", "event": "taskStatusUpdated", "task_id": "test1"}`)
 		request, _ := http.NewRequest(http.MethodPost, "/task-status-updated", bytes.NewBuffer(body))
 		request.Header.Add("X-Signature", "abc123")
 
@@ -46,6 +52,11 @@ func Test_taskStatusUpdatedHandler(t *testing.T) {
 
 		if response.Code != http.StatusNoContent {
 			t.Errorf("respones return wrong status: got %d want %d", response.Code, http.StatusNoContent)
+		}
+
+		want := fmt.Sprint("Created Epic: ", epic.Name)
+		if hook.LastEntry().Message != want {
+			t.Errorf("creation log is incorrect: got %q want %q", hook.LastEntry().Message, want)
 		}
 	})
 }
