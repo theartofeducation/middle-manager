@@ -1,6 +1,6 @@
-package main
+package clickup
 
-import "github.com/pkg/errors"
+import "errors"
 
 // Custom errors.
 var (

@@ -15,19 +15,34 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/theartofeducation/middle-manager/clickup"
+	"github.com/theartofeducation/middle-manager/clubhouse"
 )
 
 var (
 	errorChan chan error
-	log       *logrus.Logger
+	app       App
 )
 
+// App holds the application dependencies.
+type App struct {
+	log       *logrus.Logger
+	clickup   clickup.CUClient
+	clubhouse clubhouse.CHClient
+}
+
 func main() {
-	log = logrus.New()
+	app = App{}
+
+	app.log = logrus.New()
 
 	if err := godotenv.Load(); err != nil {
-		log.Infoln("could not load env:", err)
+		app.log.Infoln("could not load env:", err)
 	}
+
+	app.clickup = clickup.NewClient(os.Getenv("CLICKUP_API_KEY"), os.Getenv("TASK_STATUS_UPDATED_SECRET"))
+	app.clubhouse = clubhouse.NewClient(os.Getenv("CLUBHOUSE_API_TOKEN"))
 
 	router := mux.NewRouter()
 
@@ -48,18 +63,18 @@ func main() {
 
 	err := <-errorChan
 	err = errors.Wrap(err, "main")
-	log.Errorln(err)
+	app.log.Errorln(err)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
 	server.Shutdown(ctx)
-	log.Infoln("shutting down...")
+	app.log.Infoln("shutting down...")
 	os.Exit(0)
 }
 
 func startServer(server *http.Server) {
-	log.Infof("Starting server on %s", server.Addr)
+	app.log.Infof("Starting server on %s", server.Addr)
 
 	errorChan <- http.ListenAndServe(
 		server.Addr,
