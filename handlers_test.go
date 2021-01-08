@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/sirupsen/logrus/hooks/test"
-	"github.com/theartofeducation/middle-manager/clickup"
-	"github.com/theartofeducation/middle-manager/clubhouse"
+	"github.com/theartofeducation/clickup-go"
+	"github.com/theartofeducation/clubhouse-go"
 )
 
 func Test_rootHandler(t *testing.T) {

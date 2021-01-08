@@ -4,7 +4,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/theartofeducation/middle-manager/clickup"
+	"github.com/theartofeducation/clickup-go"
 )
 
 const rootResponse = `{"message": "Locke, I told you I need those TPS reports done by noon today."}`
