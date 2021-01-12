@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/theartofeducation/clickup-go"
+	"github.com/theartofeducation/clubhouse-go"
 )
 
 const rootResponse = `{"message": "Locke, I told you I need those TPS reports done by noon today."}`
@@ -67,4 +68,40 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 
 		writer.WriteHeader(http.StatusNoContent)
 	}
+}
+
+func updateTaskStatusHandler() http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		// validate signature
+
+		// get webhook from clubhouse
+		webhook, err := app.clubhouse.ParseWebhook(request.Body)
+		if err != nil {
+			// TODO: handler error
+			return
+		}
+
+		// check webhook for event where an epic was updated to done
+		for _, action := range webhook.Actions {
+			if epicIsDone(action) {
+				// get epic information
+
+				// create task update
+				update := clickup.UpdateTaskRequest{Status: clickup.StatusAcceptance}
+
+				// send task update
+				err := app.clickup.UpdateTask(update)
+
+				// log
+				task := clickup.Task{}
+				app.log.Infof("Task %q moved to acceptance", task.Name)
+			}
+		}
+
+		writer.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func epicIsDone(action clubhouse.WebhookAction) bool {
+	return action.EntityType == clubhouse.EntityTypeEpic && action.Action == clubhouse.ActionUpdate && action.Changes.State.New == clubhouse.EpicStateDone
 }
