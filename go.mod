@@ -9,6 +9,6 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.7.0
-	github.com/theartofeducation/clickup-go v0.0.1
-	github.com/theartofeducation/clubhouse-go v0.0.1
+	github.com/theartofeducation/clickup-go v0.1.1
+	github.com/theartofeducation/clubhouse-go v0.1.1
 )
