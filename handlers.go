@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 
 	"github.com/theartofeducation/clickup-go"
 	"github.com/theartofeducation/clubhouse-go"
@@ -56,7 +58,8 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 		}
 
 		if task.Status.Status == clickup.StatusReadyForDevelopment {
-			epic, err := app.clubhouse.CreateEpic(task.Name, task.URL)
+			name := fmt.Sprintf("%s (%s)", task.Name, task.ID)
+			epic, err := app.clubhouse.CreateEpic(name, task.URL)
 			if err != nil {
 				app.log.Errorln(err)
 				writer.WriteHeader(http.StatusInternalServerError)
@@ -77,6 +80,7 @@ func updateTaskStatusHandler() http.HandlerFunc {
 		// get webhook from clubhouse
 		webhook, err := app.clubhouse.ParseWebhook(request.Body)
 		if err != nil {
+			app.log.Errorln(err)
 			// TODO: handler error
 			return
 		}
@@ -84,13 +88,18 @@ func updateTaskStatusHandler() http.HandlerFunc {
 		// check webhook for event where an epic was updated to done
 		for _, action := range webhook.Actions {
 			if epicIsDone(action) {
-				// get epic information
-
-				// create task update
 				update := clickup.UpdateTaskRequest{Status: clickup.StatusAcceptance}
 
-				// send task update
-				err := app.clickup.UpdateTask(update)
+				r := regexp.MustCompile(`((.*))`)
+				name := action.Name
+				id := r.FindStringSubmatch(name)[1]
+
+				err := app.clickup.UpdateTask(id, update)
+				if err != nil {
+					app.log.Errorln(err)
+					// TODO: handle error
+					return
+				}
 
 				// log
 				task := clickup.Task{}
