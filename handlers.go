@@ -77,33 +77,29 @@ func updateTaskStatusHandler() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		// validate signature
 
-		// get webhook from clubhouse
 		webhook, err := app.clubhouse.ParseWebhook(request.Body)
 		if err != nil {
 			app.log.Errorln(err)
-			// TODO: handler error
+			writer.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
 
-		// check webhook for event where an epic was updated to done
 		for _, action := range webhook.Actions {
 			if epicIsDone(action) {
 				update := clickup.UpdateTaskRequest{Status: clickup.StatusAcceptance}
 
-				r := regexp.MustCompile(`((.*))`)
 				name := action.Name
+				r := regexp.MustCompile(`\((.*?)\)`)
 				id := r.FindStringSubmatch(name)[1]
 
 				err := app.clickup.UpdateTask(id, update)
 				if err != nil {
 					app.log.Errorln(err)
-					// TODO: handle error
+					writer.WriteHeader(http.StatusInternalServerError)
 					return
 				}
 
-				// log
-				task := clickup.Task{}
-				app.log.Infof("Task %q moved to acceptance", task.Name)
+				app.log.Infof("Task %q moved to acceptance", action.Name)
 			}
 		}
 
