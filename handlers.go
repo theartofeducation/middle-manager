@@ -75,7 +75,26 @@ func taskStatusUpdatedHandler() http.HandlerFunc {
 
 func updateTaskStatusHandler() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		// validate signature
+		signature := request.Header.Get("Clubhouse-Signature")
+		if signature == "" {
+			app.log.Errorln(ErrMissingSignature)
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		body := getBody(request)
+		if body == nil {
+			app.log.Errorln(ErrEmptyBody)
+			writer.WriteHeader(http.StatusUnprocessableEntity)
+			return
+		}
+
+		err := app.clubhouse.VerifySignature(signature, getBody(request))
+		if err != nil {
+			app.log.Errorln(err)
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		webhook, err := app.clubhouse.ParseWebhook(request.Body)
 		if err != nil {
