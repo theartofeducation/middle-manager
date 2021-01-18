@@ -223,3 +223,47 @@ func Test_taskStatusUpdatedHandler(t *testing.T) {
 		}
 	})
 }
+
+func Test_updateTaskStatusHandler(t *testing.T) {
+	action := clubhouse.WebhookAction{
+		Name:       "Test Epic (def456)",
+		EntityType: clubhouse.EntityTypeEpic,
+		Action:     clubhouse.ActionUpdate,
+		Changes: clubhouse.WebhookActionChanges{
+			State: clubhouse.WebhookActionState{
+				New: clubhouse.EpicStateDone,
+			},
+		},
+	}
+
+	var actions []clubhouse.WebhookAction
+	actions = append(actions, action)
+
+	logger, hook := test.NewNullLogger()
+	app = App{
+		log:     logger,
+		clickup: clickup.MockClient{},
+		clubhouse: clubhouse.MockClient{
+			Webhook: clubhouse.Webhook{
+				Actions: actions,
+			},
+		},
+	}
+
+	body := []byte(`{"actions": [{"entity_type": "epic", "action": "update", "changes": {"state": {"new": "done"}}}]}`)
+	request, _ := http.NewRequest(http.MethodPost, "/update-task-status", bytes.NewBuffer(body))
+	request.Header.Add("Clubhouse-Signature", "abc123")
+
+	response := httptest.NewRecorder()
+
+	handler := http.HandlerFunc(updateTaskStatusHandler())
+	handler.ServeHTTP(response, request)
+
+	if response.Code != http.StatusNoContent {
+		t.Fatalf("respones return wrong status: got %d want %d", response.Code, http.StatusNoContent)
+	}
+
+	if hook.LastEntry() == nil {
+		t.Error("task moved was not logged")
+	}
+}

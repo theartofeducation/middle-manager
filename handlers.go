@@ -109,7 +109,11 @@ func updateTaskStatusHandler() http.HandlerFunc {
 
 				name := action.Name
 				r := regexp.MustCompile(`\((.*?)\)`)
-				id := r.FindStringSubmatch(name)[1]
+				result := r.FindStringSubmatch(name)
+				if len(result) != 2 {
+					continue
+				}
+				id := result[1]
 
 				err := app.clickup.UpdateTask(id, update)
 				if err != nil {
