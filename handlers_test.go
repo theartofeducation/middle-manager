@@ -223,3 +223,240 @@ func Test_taskStatusUpdatedHandler(t *testing.T) {
 		}
 	})
 }
+
+func Test_updateTaskStatusHandler(t *testing.T) {
+	t.Run("it moves a done epic to acceptance", func(t *testing.T) {
+		action := clubhouse.WebhookAction{
+			Name:       "Test Epic (def456)",
+			EntityType: clubhouse.EntityTypeEpic,
+			Action:     clubhouse.ActionUpdate,
+			Changes: clubhouse.WebhookActionChanges{
+				State: clubhouse.WebhookActionState{
+					New: clubhouse.EpicStateDone,
+				},
+			},
+		}
+
+		var actions []clubhouse.WebhookAction
+		actions = append(actions, action)
+
+		logger, hook := test.NewNullLogger()
+		app = App{
+			log:     logger,
+			clickup: clickup.MockClient{},
+			clubhouse: clubhouse.MockClient{
+				Webhook: clubhouse.Webhook{
+					Actions: actions,
+				},
+			},
+		}
+
+		body := []byte(`{"actions": [{"entity_type": "epic", "action": "update", "changes": {"state": {"new": "done"}}}]}`)
+		request, _ := http.NewRequest(http.MethodPost, "/update-task-status", bytes.NewBuffer(body))
+		request.Header.Add("Clubhouse-Signature", "abc123")
+
+		response := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(updateTaskStatusHandler())
+		handler.ServeHTTP(response, request)
+
+		if response.Code != http.StatusNoContent {
+			t.Fatalf("respones return wrong status: got %d want %d", response.Code, http.StatusNoContent)
+		}
+
+		if hook.LastEntry() == nil {
+			t.Error("task moved was not logged")
+		}
+	})
+
+	t.Run("it handles empty signature", func(t *testing.T) {
+		logger, hook := test.NewNullLogger()
+		app = App{
+			log:       logger,
+			clickup:   clickup.MockClient{},
+			clubhouse: clubhouse.MockClient{},
+		}
+
+		body := []byte(`{"actions": [{"entity_type": "epic", "action": "update", "changes": {"state": {"new": "done"}}}]}`)
+		request, _ := http.NewRequest(http.MethodPost, "/update-task-status", bytes.NewBuffer(body))
+		request.Header.Add("Clubhouse-Signature", "")
+
+		response := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(updateTaskStatusHandler())
+		handler.ServeHTTP(response, request)
+
+		if response.Code != http.StatusUnauthorized {
+			t.Fatalf("respones return wrong status: got %d want %d", response.Code, http.StatusUnauthorized)
+		}
+
+		if hook.LastEntry().Message != ErrMissingSignature.Error() {
+			t.Errorf("received wrong error message: got %q want %q", hook.LastEntry().Message, ErrMissingSignature)
+		}
+	})
+
+	t.Run("it handles empty body", func(t *testing.T) {
+		logger, hook := test.NewNullLogger()
+		app = App{
+			log:       logger,
+			clickup:   clickup.MockClient{},
+			clubhouse: clubhouse.MockClient{},
+		}
+
+		request, _ := http.NewRequest(http.MethodPost, "/update-task-status", nil)
+		request.Header.Add("Clubhouse-Signature", "abc123")
+
+		response := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(updateTaskStatusHandler())
+		handler.ServeHTTP(response, request)
+
+		if response.Code != http.StatusUnprocessableEntity {
+			t.Fatalf("respones return wrong status: got %d want %d", response.Code, http.StatusUnprocessableEntity)
+		}
+
+		if hook.LastEntry().Message != ErrEmptyBody.Error() {
+			t.Errorf("received wrong error message: got %q want %q", hook.LastEntry().Message, ErrEmptyBody)
+		}
+	})
+
+	t.Run("it handles signature mismatch", func(t *testing.T) {
+		logger, hook := test.NewNullLogger()
+		app = App{
+			log:       logger,
+			clickup:   clickup.MockClient{},
+			clubhouse: clubhouse.MockClient{VerifySignatureError: true},
+		}
+
+		body := []byte(`{"actions": [{"entity_type": "epic", "action": "update", "changes": {"state": {"new": "done"}}}]}`)
+		request, _ := http.NewRequest(http.MethodPost, "/update-task-status", bytes.NewBuffer(body))
+		request.Header.Add("Clubhouse-Signature", "abc123")
+
+		response := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(updateTaskStatusHandler())
+		handler.ServeHTTP(response, request)
+
+		if response.Code != http.StatusUnauthorized {
+			t.Fatalf("respones return wrong status: got %d want %d", response.Code, http.StatusUnauthorized)
+		}
+
+		if hook.LastEntry().Message != clubhouse.ErrSignatureMismatch.Error() {
+			t.Errorf("received wrong error message: got %q want %q", hook.LastEntry().Message, clubhouse.ErrSignatureMismatch)
+		}
+	})
+
+	t.Run("it handles parse webhook error", func(t *testing.T) {
+		logger, hook := test.NewNullLogger()
+		app = App{
+			log:       logger,
+			clickup:   clickup.MockClient{},
+			clubhouse: clubhouse.MockClient{ParseWebhookError: true},
+		}
+
+		body := []byte(`{"actions": [{"entity_type": "epic", "action": "update", "changes": {"state": {"new": "done"}}}]}`)
+		request, _ := http.NewRequest(http.MethodPost, "/update-task-status", bytes.NewBuffer(body))
+		request.Header.Add("Clubhouse-Signature", "abc123")
+
+		response := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(updateTaskStatusHandler())
+		handler.ServeHTTP(response, request)
+
+		if response.Code != http.StatusUnprocessableEntity {
+			t.Fatalf("respones return wrong status: got %d want %d", response.Code, http.StatusUnprocessableEntity)
+		}
+
+		if hook.LastEntry().Message != "Could not parse Webhook body: Test error" {
+			t.Errorf("received wrong error message: got %q want %q", hook.LastEntry().Message, "Could not parse Webhook body: Test error")
+		}
+	})
+
+	t.Run("it handles epic without Task ID", func(t *testing.T) {
+		action := clubhouse.WebhookAction{
+			Name:       "Test Epic",
+			EntityType: clubhouse.EntityTypeEpic,
+			Action:     clubhouse.ActionUpdate,
+			Changes: clubhouse.WebhookActionChanges{
+				State: clubhouse.WebhookActionState{
+					New: clubhouse.EpicStateDone,
+				},
+			},
+		}
+
+		var actions []clubhouse.WebhookAction
+		actions = append(actions, action)
+
+		logger, hook := test.NewNullLogger()
+		app = App{
+			log:     logger,
+			clickup: clickup.MockClient{},
+			clubhouse: clubhouse.MockClient{
+				Webhook: clubhouse.Webhook{
+					Actions: actions,
+				},
+			},
+		}
+
+		body := []byte(`{"actions": [{"entity_type": "epic", "action": "update", "changes": {"state": {"new": "done"}}}]}`)
+		request, _ := http.NewRequest(http.MethodPost, "/update-task-status", bytes.NewBuffer(body))
+		request.Header.Add("Clubhouse-Signature", "abc123")
+
+		response := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(updateTaskStatusHandler())
+		handler.ServeHTTP(response, request)
+
+		if response.Code != http.StatusNoContent {
+			t.Fatalf("respones return wrong status: got %d want %d", response.Code, http.StatusNoContent)
+		}
+
+		if hook.LastEntry() != nil {
+			t.Errorf("received log message when not expecting one: %q", hook.LastEntry().Message)
+		}
+	})
+
+	t.Run("it handles task update error", func(t *testing.T) {
+		action := clubhouse.WebhookAction{
+			Name:       "Test Epic (def456)",
+			EntityType: clubhouse.EntityTypeEpic,
+			Action:     clubhouse.ActionUpdate,
+			Changes: clubhouse.WebhookActionChanges{
+				State: clubhouse.WebhookActionState{
+					New: clubhouse.EpicStateDone,
+				},
+			},
+		}
+
+		var actions []clubhouse.WebhookAction
+		actions = append(actions, action)
+
+		logger, hook := test.NewNullLogger()
+		app = App{
+			log:     logger,
+			clickup: clickup.MockClient{UpdateTaskError: true},
+			clubhouse: clubhouse.MockClient{
+				Webhook: clubhouse.Webhook{
+					Actions: actions,
+				},
+			},
+		}
+
+		body := []byte(`{"actions": [{"entity_type": "epic", "action": "update", "changes": {"state": {"new": "done"}}}]}`)
+		request, _ := http.NewRequest(http.MethodPost, "/update-task-status", bytes.NewBuffer(body))
+		request.Header.Add("Clubhouse-Signature", "abc123")
+
+		response := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(updateTaskStatusHandler())
+		handler.ServeHTTP(response, request)
+
+		if response.Code != http.StatusInternalServerError {
+			t.Fatalf("respones return wrong status: got %d want %d", response.Code, http.StatusInternalServerError)
+		}
+
+		if hook.LastEntry().Message != clickup.ErrTest.Error() {
+			t.Errorf("received wrong error message: got %q want %q", hook.LastEntry().Message, clickup.ErrTest)
+		}
+	})
+}

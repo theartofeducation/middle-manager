@@ -46,7 +46,10 @@ func main() {
 		TaskStatusUpdatedSecret: os.Getenv("TASK_STATUS_UPDATED_SECRET"),
 	})
 
-	app.clubhouse = clubhouse.NewClient(clubhouse.Options{Token: os.Getenv("CLUBHOUSE_API_TOKEN")})
+	app.clubhouse = clubhouse.NewClient(clubhouse.Options{
+		Token:         os.Getenv("CLUBHOUSE_API_TOKEN"),
+		WebhookSecret: os.Getenv("CLUBHOUSE_WEBHOOK_SECRET"),
+	})
 
 	router := mux.NewRouter()
 

@@ -29,3 +29,7 @@ Middle Manager automates information updates between [ClickUp](https://clickup.c
 #### Create Clubhouse Epic
 
 When a ClickUp task is moved to the status Ready For Development an Epic will be created in Clubhouse.
+
+#### Move ClickUp Task to Acceptance
+
+When an Epic is marked as "Done" in Clubhouse the corresponding Task in ClickUp will be moved to the "Acceptance" column.

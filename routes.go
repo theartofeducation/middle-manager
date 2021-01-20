@@ -17,4 +17,5 @@ func loadRoutes(router *mux.Router) {
 
 	router.HandleFunc("/", rootHandler()).Methods(http.MethodGet)
 	router.HandleFunc("/task-status-updated", taskStatusUpdatedHandler()).Methods(http.MethodPost)
+	router.HandleFunc("/update-task-status", updateTaskStatusHandler()).Methods(http.MethodPost)
 }
