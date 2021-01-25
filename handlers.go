@@ -105,7 +105,9 @@ func updateTaskStatusHandler() http.HandlerFunc {
 
 		for _, action := range webhook.Actions {
 			if epicIsDone(action) {
-				update := clickup.UpdateTaskRequest{Status: clickup.StatusAcceptance}
+				// TODO dynamic status here
+				newStatus := clickup.StatusAcceptance
+				update := clickup.UpdateTaskRequest{Status: newStatus}
 
 				name := action.Name
 				r := regexp.MustCompile(`\((.*?)\)`)
@@ -122,7 +124,7 @@ func updateTaskStatusHandler() http.HandlerFunc {
 					return
 				}
 
-				app.log.Infof("Task %q moved to acceptance", action.Name)
+				app.log.Infof("Task %q moved to %s", action.Name, newStatus)
 			}
 		}
 
@@ -132,4 +134,8 @@ func updateTaskStatusHandler() http.HandlerFunc {
 
 func epicIsDone(action clubhouse.WebhookAction) bool {
 	return action.EntityType == clubhouse.EntityTypeEpic && action.Action == clubhouse.ActionUpdate && action.Changes.State.New == clubhouse.EpicStateDone
+}
+
+func epicIsInProgress(action clubhouse.WebhookAction) bool {
+	return action.EntityType == clubhouse.EntityTypeEpic && action.Action == clubhouse.ActionUpdate && action.Changes.State.New == clubhouse.EpicStateInProgress
 }
