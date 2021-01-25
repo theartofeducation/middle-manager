@@ -104,9 +104,9 @@ func updateTaskStatusHandler() http.HandlerFunc {
 		}
 
 		for _, action := range webhook.Actions {
-			if epicIsDone(action) {
-				// TODO dynamic status here
-				newStatus := clickup.StatusAcceptance
+			newStatus := getNewClickUpStatus(action)
+
+			if newStatus != "" {
 				update := clickup.UpdateTaskRequest{Status: newStatus}
 
 				name := action.Name
@@ -132,10 +132,15 @@ func updateTaskStatusHandler() http.HandlerFunc {
 	}
 }
 
-func epicIsDone(action clubhouse.WebhookAction) bool {
-	return action.EntityType == clubhouse.EntityTypeEpic && action.Action == clubhouse.ActionUpdate && action.Changes.State.New == clubhouse.EpicStateDone
-}
+func getNewClickUpStatus(action clubhouse.WebhookAction) clickup.Status {
+	if action.EntityType == clubhouse.EntityTypeEpic && action.Action == clubhouse.ActionUpdate {
+		switch action.Changes.State.New {
+		case clubhouse.EpicStateDone:
+			return clickup.StatusAcceptance
+		case clubhouse.EpicStateInProgress:
+			return clickup.StatusInDevelopmentClubhouse
+		}
+	}
 
-func epicIsInProgress(action clubhouse.WebhookAction) bool {
-	return action.EntityType == clubhouse.EntityTypeEpic && action.Action == clubhouse.ActionUpdate && action.Changes.State.New == clubhouse.EpicStateInProgress
+	return ""
 }
