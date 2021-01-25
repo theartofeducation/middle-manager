@@ -18,7 +18,11 @@ github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/theartofeducation/clickup-go v0.1.2 h1:e17j6xrlx8gmTPRM5xLgJeEB586LUbbwjshOL6Nwonw=
 github.com/theartofeducation/clickup-go v0.1.2/go.mod h1:EYMeKnwh1dJSePwLNl5y2v3nLAR9YhPXbN5BvcgiDFU=
+github.com/theartofeducation/clickup-go v0.2.0 h1:HliahHfdpMF1LrXuXSrEmlpYLN9ri7VdM5wpF580tio=
+github.com/theartofeducation/clickup-go v0.2.0/go.mod h1:EYMeKnwh1dJSePwLNl5y2v3nLAR9YhPXbN5BvcgiDFU=
 github.com/theartofeducation/clubhouse-go v0.2.0 h1:J43xGDJrHfuG7inKVj4NEwcAdzVAoO7MgbYg6Jmh4nw=
 github.com/theartofeducation/clubhouse-go v0.2.0/go.mod h1:tUAM5tuemAQ2CavvadsW5JdLXyMjmF6GDVTrnIuQOdM=
+github.com/theartofeducation/clubhouse-go v0.3.0 h1:7zUpccbGHAuqf0vwdS96cb2cHRUyDBxY0HPBs91pM/o=
+github.com/theartofeducation/clubhouse-go v0.3.0/go.mod h1:tUAM5tuemAQ2CavvadsW5JdLXyMjmF6GDVTrnIuQOdM=
 golang.org/x/sys v0.0.0-20191026070338-33540a1f6037 h1:YyJpGZS1sBuBCzLAR1VEpK193GlqGZbnPFnPV/5Rsb4=
 golang.org/x/sys v0.0.0-20191026070338-33540a1f6037/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
