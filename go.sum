@@ -20,6 +20,8 @@ github.com/theartofeducation/clickup-go v0.1.2 h1:e17j6xrlx8gmTPRM5xLgJeEB586LUb
 github.com/theartofeducation/clickup-go v0.1.2/go.mod h1:EYMeKnwh1dJSePwLNl5y2v3nLAR9YhPXbN5BvcgiDFU=
 github.com/theartofeducation/clickup-go v0.2.0 h1:HliahHfdpMF1LrXuXSrEmlpYLN9ri7VdM5wpF580tio=
 github.com/theartofeducation/clickup-go v0.2.0/go.mod h1:EYMeKnwh1dJSePwLNl5y2v3nLAR9YhPXbN5BvcgiDFU=
+github.com/theartofeducation/clickup-go v0.2.1 h1:fHbIXQkRpp73eUMY+z7Fvo/mOcyZBXl2/b81H68jIbU=
+github.com/theartofeducation/clickup-go v0.2.1/go.mod h1:EYMeKnwh1dJSePwLNl5y2v3nLAR9YhPXbN5BvcgiDFU=
 github.com/theartofeducation/clubhouse-go v0.2.0 h1:J43xGDJrHfuG7inKVj4NEwcAdzVAoO7MgbYg6Jmh4nw=
 github.com/theartofeducation/clubhouse-go v0.2.0/go.mod h1:tUAM5tuemAQ2CavvadsW5JdLXyMjmF6GDVTrnIuQOdM=
 github.com/theartofeducation/clubhouse-go v0.3.0 h1:7zUpccbGHAuqf0vwdS96cb2cHRUyDBxY0HPBs91pM/o=
